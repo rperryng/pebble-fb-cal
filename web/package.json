@@ -5,6 +5,7 @@
   "author": "Ryan",
   "license": "ISC",
   "dependencies": {
+    "async": "^2.0.0-rc.3",
     "body-parser": "^1.15.0",
     "dotenv": "^2.0.0",
     "express": "^4.13.4",

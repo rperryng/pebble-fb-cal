@@ -1,7 +1,9 @@
+var async = require('async');
 var bodyParser = require('body-parser');
 var dotenv = require('dotenv');
 var express = require('express');
 var logger = require('morgan');
+var querystring = require('querystring');
 var request = require('request');
 
 dotenv.load();
@@ -25,43 +27,81 @@ app.get(['/', '/config'], function (req, res, next) {
 });
 
 app.get('/fb-callback', function (req, res, next) {
+  async.waterfall([
+    // Get short lived access token
+    function (callback) {
+      var urlParams = querystring.stringify({
+        client_id: process.env.FB_CLIENT_ID,
+        client_secret: process.env.FB_CLIENT_SECRET,
+        redirect_uri: process.env.DOMAIN + '/fb-callback',
+        code: req.query.code
+      });
+      var url = 'https://graph.facebook.com/v2.3/oauth/access_token?' + urlParams;
 
-  var url = 'https://graph.facebook.com/v2.3/oauth/access_token' +
-    '?client_id=' + process.env.FB_CLIENT_ID +
-    '&client_secret=' + process.env.FB_CLIENT_SECRET +
-    '&redirect_uri=' + process.env.DOMAIN + '/fb-callback' +
-    '&code=' + req.query.code;
+      request(url, function (err, response, body) {
+        if (err) return callback(err);
 
-  request(url, function (err, response, body) {
-    if (err || response.statusCode !== 200) return next(err);
+        var fbResponse = JSON.parse(body);
+        callback(null, fbResponse.access_token);
+      });
+    },
 
-    var fbResponse = JSON.parse(body);
-    var url = 'https://graph.facebook.com/v2.5/me' +
-      '?fields=id' +
-      '&access_token=' + fbResponse.access_token;
+    // Get long lived access token
+    function (token, callback) {
+      var urlParams = querystring.stringify({
+        grant_type: 'fb_exchange_token',
+        client_id: process.env.FB_CLIENT_ID,
+        client_secret: process.env.FB_CLIENT_SECRET,
+        fb_exchange_token: token
+      });
+      var url = 'https://graph.facebook.com/v2.3/oauth/access_token?' + urlParams;
 
-    request(url, function (idErr, idResponse, idBody) {
-      if (err || response.statusCode !== 200) return next(err);
+      request(url, function (err, response, body) {
+        if (err) return callback(err);
 
-      var jsonId = JSON.parse(idBody);
-      var data = {
-        token: fbResponse.access_token,
-        id: jsonId.id
-      };
-      res.render('done', {data: JSON.stringify(data)});
-    });
+        var fbResponse = JSON.parse(body);
+        console.log('got', fbResponse);
+        callback(null, fbResponse.access_token);
+      });
+    },
+
+    // Get facebook id
+    function (token, callback) {
+      var urlParams = querystring.stringify({
+        fields: 'id',
+        access_token: token
+      });
+      var url = 'https://graph.facebook.com/v2.5/me?' + urlParams;
+
+      request(url, function (err, response, body) {
+        if (err) return callback(err);
+
+        var fbResponse = JSON.parse(body);
+        console.log('got FB response', fbResponse);
+        callback(null, {
+          token: token,
+          id: fbResponse.id
+        });
+      });
+    }
+
+  ], function (err, data) {
+    if (err) return next(err);
+
+    console.log('done', data);
+    res.render('done', {data: JSON.stringify(data)});
   });
-});
-
-// No other middleware handled request
-app.use(function (req, res, next) {
-  res.sendStatus(404);
 });
 
 // Error handling middleware
 app.use(function(err, req, res, next) {
   console.error(err.stack);
   res.status(500).send('Something broke!');
+});
+
+// No other middleware handled request
+app.use(function (req, res, next) {
+  res.sendStatus(404);
 });
 
 app.listen(port, function () {
