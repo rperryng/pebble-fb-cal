@@ -1,0 +1,13 @@
+doctype html
+
+html
+  head
+    title Done
+
+    script.
+      var fb = JSON.parse(`!{data}`);
+    script(type='text/javascript' src='/public/done.js')
+
+  body
+    h1 All set!  Hit done below!
+    button(id='button-update' class='u-centerHorizontal' onClick='submit()') Done
