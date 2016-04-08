@@ -1,0 +1,20 @@
+{
+  "uuid": "49d26b9f-c143-410a-ada7-608cedfd4941",
+  "shortName": "fb-timeline",
+  "longName": "fb-timeline",
+  "companyName": "MakeAwesomeHappen",
+  "versionLabel": "1.0",
+  "sdkVersion": "3",
+  "capabilities": ["configurable"],
+  "targetPlatforms": ["aplite", "basalt", "chalk"],
+  "enableMultiJS": true,
+  "watchapp": {
+    "watchface": false
+  },
+  "appKeys": {
+    "dummy": 0
+  },
+  "resources": {
+    "media": []
+  }
+}
