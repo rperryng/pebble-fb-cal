@@ -85,10 +85,30 @@ router.get('/fb-callback', function (req, res, next) {
           id: fbResponse.id
         });
       });
+    },
+
+    // Insert the new user, or update it if it already exists
+    function (data, callback) {
+
+      var query = {
+        facebookUserId: data.id
+      };
+      var update = {
+        facebookUserId: data.id,
+        token: data.token,
+        timelineToken: timelineToken
+      };
+      var options = {
+        upsert: true
+      };
+      User.findOneAndUpdate(query, update, options, function (err, user) {
+        if (err) return callback(err);
+        callback(null, user);
+      });
     }
 
-  ], function (err, data) {
+  ], function (err, user) {
     if (err) return next(err);
-    res.render('done', {data: JSON.stringify(data)});
+    res.render('done');
   });
 });
