@@ -5,13 +5,16 @@
   "author": "Ryan",
   "license": "ISC",
   "dependencies": {
+    "agenda": "^0.8.0",
     "async": "^2.0.0-rc.3",
     "body-parser": "^1.15.0",
     "dotenv": "^2.0.0",
     "express": "^4.13.4",
+    "file-stream-rotator": "0.0.6",
     "mongoose": "^4.4.12",
     "morgan": "^1.7.0",
     "pug": "^2.0.0-alpha3",
-    "request": "^2.70.0"
+    "request": "^2.70.0",
+    "winston": "^2.2.0"
   }
 }

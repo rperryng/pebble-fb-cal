@@ -4,7 +4,7 @@ var querystring = require('querystring');
 var request = require('request');
 
 var router = module.exports = express.Router();
-var User = require('./user.model');
+var User = require('./user-model');
 
 var FB_GRAPH_URL = 'https://graph.facebook.com/v2.5';
 
@@ -12,7 +12,7 @@ router.get(['/', '/register'], function (req, res, next) {
   var timelineToken = req.query.timelineToken;
   if (!timelineToken) {
     res.status(400).json({
-      error: 'Timeline token required'
+      error: 'timeline token required'
     });
     return;
   }
@@ -90,12 +90,13 @@ router.get('/fb-callback', function (req, res, next) {
     // Insert the new user, or update it if it already exists
     function (data, callback) {
 
+      console.log('have data', data);
       var query = {
         facebookUserId: data.id
       };
       var update = {
         facebookUserId: data.id,
-        token: data.token,
+        facebookAccessToken: data.token,
         timelineToken: timelineToken
       };
       var options = {

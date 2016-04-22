@@ -1,31 +1,37 @@
 var async = require('async');
 var dotenv = require('dotenv');
 var express = require('express');
-var logger = require('morgan');
+var logger = require('./logger');
 var mongoose = require('mongoose');
+var morgan = require('morgan');
 var querystring = require('querystring');
 var request = require('request');
 
 dotenv.load();
 
+var agendaInstance = require('./lib/agenda');
+
 var port = process.env.PORT;
 var mongoUrl = process.env.MONGO_URL;
 var app = express();
 
-app.use(logger('dev'));
+// Logging
+app.use(morgan('dev', {stream: logger.morganStream}));
 
-app.set('views', './views');
+// Views
+app.set('views', __dirname + '/views');
 app.set('view engine', 'pug');
 
+// Expose public folder
 app.use('/public', express.static(__dirname + '/public'));
-app.use(require('./server/routes'));
 
-// No other middleware handled request
+// Middleware
+app.use(require('./lib/routes'));
+
 app.use(function (req, res, next) {
   res.sendStatus(404);
 });
 
-// Error handling middleware
 app.use(function(err, req, res, next) {
   console.error(err.stack);
   res.status(500).send('Something broke!');
